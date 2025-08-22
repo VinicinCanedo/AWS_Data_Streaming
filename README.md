@@ -1,58 +1,89 @@
-📊 Serverless Datalake com AWS — Streaming de Dados da Bolsa de Valores
-Este projeto demonstra como construir uma arquitetura serverless para ingestão e processamento de dados da bolsa de valores dos EUA em tempo real, utilizando serviços gerenciados da AWS. A proposta é criar uma pipeline escalável, eficiente e de baixo custo, com foco total na lógica de negócios.
+# 📊 Serverless Datalake com AWS — Streaming de Dados da Bolsa de Valores
 
-🚀 Visão Geral
-A arquitetura foi desenhada para consumir dados de trade em tempo real e armazená-los de forma otimizada, sem a necessidade de gerenciar servidores ou infraestrutura complexa. Utilizando o modelo Serverless Datalake, o projeto explora o poder da nuvem para entregar:
-- Alta escalabilidade
-- Baixo custo operacional
-- Alta disponibilidade
-- Foco total na lógica de dados
+Este projeto demonstra como construir uma arquitetura **serverless** para ingestão e processamento de dados da bolsa de valores dos EUA em tempo real, utilizando serviços gerenciados da AWS. A proposta é criar uma pipeline escalável, eficiente e de baixo custo, com foco total na lógica de negócios.
 
-🧰 Tecnologias Utilizadas
-| Serviço / Ferramenta | Finalidade | 
-| Java | Producer local para envio dos dados | 
-| AWS Kinesis | Ingestão e processamento em tempo real | 
-| AWS Lambda | Processamento e persistência dos dados | 
-| AWS DynamoDB | Armazenamento NoSQL escalável | 
-| IAM | Controle de acesso entre serviços | 
-| AWS CLI | Provisionamento e automação | 
+---
 
+## 🚀 Visão Geral
 
+A arquitetura foi desenhada para consumir dados de trade em tempo real e armazená-los de forma otimizada, sem a necessidade de gerenciar servidores ou infraestrutura complexa. Utilizando o modelo **Serverless Datalake**, o projeto explora o poder da nuvem para entregar:
 
-🛠️ Passo a Passo para Reproduzir o Projeto
-1️⃣ Criar uma conta no Finnhub e obter a API Key
-- Acesse https://finnhub.io e crie uma conta gratuita.
-- Após o login, gere sua API_KEY.
-- No projeto Java, insira essa chave no arquivo application.properties:
+- Alta escalabilidade  
+- Baixo custo operacional  
+- Alta disponibilidade  
+- Foco total na lógica de dados  
+
+---
+
+## 🧰 Tecnologias Utilizadas
+
+| Serviço / Ferramenta | Finalidade |
+|----------------------|------------|
+| **Java**             | Producer local para envio dos dados |
+| **AWS Kinesis**      | Ingestão e processamento em tempo real |
+| **AWS Lambda**       | Processamento e persistência dos dados |
+| **AWS DynamoDB**     | Armazenamento NoSQL escalável |
+| **IAM**              | Controle de acesso entre serviços |
+| **AWS CLI**          | Provisionamento e automação |
+
+---
+
+## 🛠️ Passo a Passo para Reproduzir o Projeto
+
+### 1️⃣ Criar uma conta no Finnhub e obter a API Key
+
+- Acesse [https://finnhub.io](https://finnhub.io) e crie uma conta gratuita.
+- Após o login, gere sua **API_KEY**.
+- No projeto Java, insira essa chave no arquivo `application.properties`:
+
+```properties
 finnhub.api.key=YOUR_API_KEY
+```
 
+- Compile o projeto e gere o `.jar` com sua aplicação de streaming.
 
-- Compile o projeto e gere o .jar com sua aplicação de streaming.
+---
 
-2️⃣ Instalar e configurar o AWS CLI
-- Baixe o AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html
+### 2️⃣ Instalar e configurar o AWS CLI
+
+- Baixe o AWS CLI: [https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 - Configure com suas credenciais:
+
+```bash
 aws configure
+```
 
+---
 
+### 3️⃣ Criar um Kinesis Data Stream
 
-3️⃣ Criar um Kinesis Data Stream
 - No console da AWS ou via CLI, crie um stream chamado:
-stream-finnhub
 
+```bash
+stream-finnhub
+```
 
 - Esse será o canal de ingestão dos dados de trade.
 
-4️⃣ Criar uma função IAM para o Lambda
-- Vá até o IAM e crie uma função chamada:
-FinnhubStreamProcessorRole
+---
 
+### 4️⃣ Criar uma função IAM para o Lambda
+
+- Vá até o IAM e crie uma função chamada:
+
+```text
+FinnhubStreamProcessorRole
+```
 
 - Anexe a política gerenciada:
+
+```text
 AWSLambdaKinesisExecutionRole
+```
 
+- Crie uma política personalizada chamada `PolicyWriteDynamoDB` com as permissões:
 
-- Crie uma política personalizada chamada PolicyWriteDynamoDB com as permissões:
+```json
 {
   "Effect": "Allow",
   "Action": [
@@ -61,28 +92,61 @@ AWSLambdaKinesisExecutionRole
   ],
   "Resource": "arn:aws:dynamodb:<REGIAO>:<ID_CONTA>:table/ProcessedTradesDynamoDB"
 }
+```
 
-
 - Anexe essa política à função.
 
-5️⃣ Criar a tabela no DynamoDB
-- Nome sugerido: ProcessedTradesDynamoDB
-- Chave de partição obrigatória: trade_id (tipo: String)
-Você pode usar outro nome para a tabela, mas o campo trade_id deve existir como chave primária.
+---
 
+### 5️⃣ Criar a tabela no DynamoDB
 
-6️⃣ Criar a função Lambda
+- Nome sugerido: `ProcessedTradesDynamoDB`
+- Chave de partição obrigatória: `trade_id` (tipo: String)
+
+> Você pode usar outro nome para a tabela, mas o campo `trade_id` deve existir como chave primária.
+
+---
+
+### 6️⃣ Criar a função Lambda
+
 - Crie uma função Lambda com o runtime Python 3.13.
-- Configure o gatilho como o stream stream-finnhub.
-- Use o código lambda_function.py presente neste repositório.
+- Configure o gatilho como o stream `stream-finnhub`.
+- Use o código `lambda_function.py` presente neste repositório.
 - Adicione uma variável de ambiente chamada:
+
+```text
 DYNAMODB_TABLE_NAME = ProcessedTradesDynamoDB
+```
 
+- Vincule a função à role `FinnhubStreamProcessorRole`.
 
-- Vincule a função à role FinnhubStreamProcessorRole.
+---
 
-🧾 Observações
-- O arquivo consumer.py está presente apenas para fins ilustrativos e não precisa ser executado.
+### 🧾 Observações
+
+- O arquivo `consumer.py` está presente apenas para fins ilustrativos e **não precisa ser executado**.
 - O projeto foi pensado para operar durante o horário de mercado, otimizando custos com arquitetura serverless.
 
+---
 
+## 📚 Fontes e Inspiração
+
+- [Pixegami - YouTube](https://www.youtube.com/watch?v=CjVPMocEECM)  
+- [AWS Lambda Stream Processing](https://github.com/aws-samples/lambda-refarch-streamprocessing)  
+- [Kinesis Data Analytics Blueprints](https://github.com/aws-samples/amazon-kinesis-data-analytics-blueprints/tree/main/apps/java-datastream/kds-to-s3-datastream-java)
+
+---
+
+## 🔗 Repositório
+
+📎 [Datalake Serverless AWS](https://github.com/VinicinCanedo/Datalake_Serverless_AWS)
+
+---
+
+## 🏷️ Hashtags
+
+`#Datalake #Serverless #AWS #Kinesis #Lambda #DynamoDB #ETL #DataEngineering #StreamingData #BolsaDeValores #GitHub #CloudComputing #ArquiteturaDeDados`
+
+---
+
+Se quiser, posso te ajudar a adicionar um diagrama da arquitetura, um script de automação com AWS CLI, ou até um carrossel visual para o LinkedIn. Esse projeto está pronto para brilhar!
