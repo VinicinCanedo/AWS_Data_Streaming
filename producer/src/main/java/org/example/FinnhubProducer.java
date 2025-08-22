@@ -25,7 +25,7 @@ public class FinnhubProducer {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    // --- Funções de Callback para o WebSocket ---
+    // --- WebSocket Callback Functions ---
     public static class FinnhubWebSocketListener extends WebSocketListener {
         private final KinesisClient kinesisClient;
         private final String kinesisStreamName;
@@ -37,7 +37,7 @@ public class FinnhubProducer {
 
         @Override
         public void onOpen(WebSocket webSocket, Response response) {
-            System.out.println("### Conexão Aberta ###");
+            System.out.println("### Connection Opened ###");
             List<String> stockSymbols = Arrays.asList("AAPL", "AMZN", "MSFT", "GOOGL", "TSLA", "NVDA", "META");
 
             for (String symbol : stockSymbols) {
@@ -48,9 +48,9 @@ public class FinnhubProducer {
                                     .put("symbol", symbol)
                     );
                     webSocket.send(subscribeMessage);
-                    System.out.println("Inscrito em: " + symbol);
+                    System.out.println("Subscribed to: " + symbol);
                 } catch (IOException e) {
-                    System.err.println("Erro ao enviar mensagem de inscrição: " + e.getMessage());
+                    System.err.println("Error sending subscription message: " + e.getMessage());
                 }
             }
         }
@@ -59,7 +59,7 @@ public class FinnhubProducer {
         public void onMessage(WebSocket webSocket, String text) {
             try {
                 JsonNode payload = objectMapper.readTree(text);
-                System.out.println("Payload recebido do Finnhub: " + objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload));
+                System.out.println("Payload received from Finnhub: " + objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload));
 
                 if (payload.has("type") && "trade".equals(payload.get("type").asText()) && payload.has("data")) {
                     ArrayNode trades = (ArrayNode) payload.get("data");
@@ -89,37 +89,37 @@ public class FinnhubProducer {
                                 .build();
 
                         kinesisClient.putRecord(putRecordRequest);
-                        System.out.println("  --> Trade individual enviado para Kinesis: " + partitionKey + " | Data: " + recordData);
+                        System.out.println("  --> Individual trade sent to Kinesis: " + partitionKey + " | Data: " + recordData);
                     }
                 } else if (payload.has("type") && "ping".equals(payload.get("type").asText())) {
-                    System.out.println("  --> Mensagem PING recebida do Finnhub (conexão ativa)");
+                    System.out.println("  --> PING message received from Finnhub (connection alive)");
                 } else {
-                    System.out.println("  --> Mensagem de outro tipo ou sem dados: " + payload.get("type"));
+                    System.out.println("  --> Message of another type or with no data: " + payload.get("type"));
                 }
             } catch (Exception e) {
-                System.err.println("Erro ao processar mensagem ou enviar para Kinesis: " + e.getMessage());
-                System.err.println("Mensagem que causou o erro: " + text);
+                System.err.println("Error processing message or sending to Kinesis: " + e.getMessage());
+                System.err.println("Message that caused the error: " + text);
             }
         }
 
         @Override
         public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-            System.err.println("### Erro: " + t.getMessage() + " ###");
+            System.err.println("### Error: " + t.getMessage() + " ###");
         }
 
         @Override
         public void onClosed(WebSocket webSocket, int code, String reason) {
-            System.out.println("### Conexão Fechada ### Status: " + code + ", Mensagem: " + reason);
+            System.out.println("### Connection Closed ### Status: " + code + ", Message: " + reason);
         }
     }
 
-    // --- Ponto de Entrada Principal ---
+    // --- Main Entry Point ---
     public static void main(String[] args) throws IOException {
         Properties prop = new Properties();
         try (InputStream input = new FileInputStream("application.properties")) {
             prop.load(input);
         } catch (IOException ex) {
-            System.err.println("Erro ao carregar application.properties. Verifique se o arquivo existe.");
+            System.err.println("Error loading application.properties. Check if the file exists.");
             throw ex;
         }
 
@@ -128,22 +128,22 @@ public class FinnhubProducer {
         String finnhubApiKey = prop.getProperty("finnhub.api.key");
 
         if (finnhubApiKey == null || finnhubApiKey.isEmpty()) {
-            throw new IllegalArgumentException("A chave de API do Finnhub não foi definida em application.properties.");
+            throw new IllegalArgumentException("Finnhub API key was not defined in application.properties.");
         }
 
         Region region = Region.of(awsRegion);
 
 
-        // Inicializa o cliente Kinesis
+        // Initialize Kinesis client
         KinesisClient kinesisClient = KinesisClient.builder()
                 .region(region)
                 .build();
 
-        // URL do WebSocket do Finnhub com sua API Key
+        // Finnhub WebSocket URL with API Key
         String websocketUrl = "wss://ws.finnhub.io?token=" + finnhubApiKey;
 
-        System.out.println("Conectando ao Finnhub em: " + websocketUrl);
-        System.out.println("Enviando dados para o Kinesis Stream: " + kinesisStreamName + " na região " + awsRegion);
+        System.out.println("Connecting to Finnhub at: " + websocketUrl);
+        System.out.println("Sending data to Kinesis Stream: " + kinesisStreamName + " in region " + awsRegion);
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .readTimeout(0, TimeUnit.MILLISECONDS)
