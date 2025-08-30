@@ -136,17 +136,3 @@ DYNAMODB_TABLE_NAME = ProcessedTradesDynamoDB
 - [Kinesis Data Analytics Blueprints](https://github.com/aws-samples/amazon-kinesis-data-analytics-blueprints/tree/main/apps/java-datastream/kds-to-s3-datastream-java)
 
 ---
-
-## 🔗 Repositório
-
-📎 [Datalake Serverless AWS](https://github.com/VinicinCanedo/Datalake_Serverless_AWS)
-
----
-
-## 🏷️ Hashtags
-
-`#Datalake #Serverless #AWS #Kinesis #Lambda #DynamoDB #ETL #DataEngineering #StreamingData #BolsaDeValores #GitHub #CloudComputing #ArquiteturaDeDados`
-
----
-
-Se quiser, posso te ajudar a adicionar um diagrama da arquitetura, um script de automação com AWS CLI, ou até um carrossel visual para o LinkedIn. Esse projeto está pronto para brilhar!
