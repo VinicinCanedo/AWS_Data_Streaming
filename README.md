@@ -3,7 +3,28 @@
 Este projeto demonstra como construir uma arquitetura **serverless** para ingestão e processamento de dados da bolsa de valores dos EUA em tempo real, utilizando serviços gerenciados da AWS. A proposta é criar uma pipeline escalável, eficiente e de baixo custo, com foco total na lógica de negócios.
 
 ---
+📊 Fonte de Dados (Data Source)
+O projeto utiliza uma API de mercado financeiro para o consumo de dados via WebSockets. A arquitetura foi desenhada para lidar com as seguintes características da fonte:
 
+Streaming em Tempo Real (Push Data): Diferente de APIs baseadas em polling (onde o sistema precisa pedir a informação), utilizamos o modelo Push, onde o servidor envia os dados instantaneamente assim que uma transação ocorre, garantindo baixíssima latência.
+
+Comportamento Multi-Ativo: O sistema processa ativos de diferentes naturezas:
+
+Ações (Stocks): Dados centralizados em bolsas (ex: NYSE).
+
+Forex e Criptomoedas: Como são mercados descentralizados, o pipeline trata atualizações informativas de preço. Quando um registro possui volume zero, o sistema o interpreta como uma atualização de cotação (tick) e não necessariamente uma transação executada.
+
+Eficiência de Banda (Batching): A API agrupa múltiplas negociações em um único payload JSON para otimizar o tráfego. O código de ingestão está preparado para processar essas listas de registros de forma eficiente antes do envio ao AWS Kinesis.
+
+💡 Contexto de Negócio e Arquitetura
+A ideia central do projeto é criar uma infraestrutura robusta de Data Ingestion capaz de escalar conforme o volume do mercado financeiro mundial.
+
+Ingestão de Alta Frequência: Capturar e padronizar fluxos de dados heterogêneos para análise posterior ou dashboards em tempo real.
+
+Resiliência e Segurança: O sistema implementa um controle de sessão rigoroso para respeitar a política de conexão única por chave de API, evitando quedas de serviço e garantindo a integridade do fluxo de dados.
+
+Processamento Escalável: Ao utilizar o AWS Kinesis como porta de entrada, o projeto demonstra a capacidade de desacoplar a fonte de dados (API) dos consumidores (bancos de dados, lambdas ou analytics), permitindo crescimento horizontal.
+---
 ## 🚀 Visão Geral
 
 A arquitetura foi desenhada para consumir dados de trade em tempo real e armazená-los de forma otimizada, sem a necessidade de gerenciar servidores ou infraestrutura complexa. Utilizando o modelo **Serverless Datalake**, o projeto explora o poder da nuvem para entregar:
