@@ -24,6 +24,7 @@ Ingestão de Alta Frequência: Capturar e padronizar fluxos de dados heterogêne
 Resiliência e Segurança: O sistema implementa um controle de sessão rigoroso para respeitar a política de conexão única por chave de API, evitando quedas de serviço e garantindo a integridade do fluxo de dados.
 
 Processamento Escalável: Ao utilizar o AWS Kinesis como porta de entrada, o projeto demonstra a capacidade de desacoplar a fonte de dados (API) dos consumidores (bancos de dados, lambdas ou analytics), permitindo crescimento horizontal.
+
 ---
 ## 🚀 Visão Geral
 
